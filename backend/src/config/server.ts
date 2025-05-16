@@ -13,8 +13,7 @@ import hpp from "hpp";
 import cookieSession from "cookie-session";
 import HTTP_STATUS from "http-status-codes";
 import compression from "compression";
-
-const SERVER_PORT = 8000;
+import { envConfig } from "./envConfig";
 
 export class AppServer {
   private app: Application;
@@ -45,16 +44,16 @@ export class AppServer {
     app.use(
       cookieSession({
         name: "session",
-        keys: ["test1", "test2"],
+        keys: [envConfig.SECRET_KEY_ONE!, envConfig.SECRET_KEY_TWO!],
         maxAge: 24 * 60 * 60 * 100, // 24 hours
-        secure: false,
+        secure: envConfig.NODE_ENV !== "development",
       })
     );
     app.use(hpp());
     app.use(helmet());
     app.use(
       cors({
-        origin: "*",
+        origin: envConfig.CLIENT_URL,
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       })
@@ -114,8 +113,8 @@ export class AppServer {
    * @param httpServer The HTTP server to start.
    */
   private startHttpServer(httpServer: http.Server): void {
-    httpServer.listen(SERVER_PORT, () => {
-      console.log(`Server running on port ${SERVER_PORT}`);
+    httpServer.listen(envConfig.PORT, () => {
+      console.log(`Server running on port ${envConfig.PORT}`);
     });
   }
 }
