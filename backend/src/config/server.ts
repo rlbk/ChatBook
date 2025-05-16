@@ -14,6 +14,8 @@ import cookieSession from "cookie-session";
 import HTTP_STATUS from "http-status-codes";
 import compression from "compression";
 
+const SERVER_PORT = 8000;
+
 export class AppServer {
   private app: Application;
 
@@ -84,9 +86,36 @@ export class AppServer {
 
   private globalHandler(app: Application): void {}
 
-  private startServer(app: Application): void {}
+  /**
+   * Starts the server by creating an HTTP server instance
+   * and delegating the server start process to startHttpServer.
+   *
+   * @param app The Express application instance to attach
+   * to the HTTP server.
+   * @returns A promise that resolves when the server is started.
+   * Logs any errors encountered during the start process.
+   */
+
+  private async startServer(app: Application): Promise<void> {
+    try {
+      const httpServer: http.Server = new http.Server(app);
+      this.startHttpServer(httpServer);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   private createSocketIO(httpServer: http.Server): void {}
 
-  private startHttpServer(httpServer: http.Server): void {}
+  /**
+   * Starts the HTTP server, listening on the port specified by
+   * `SERVER_PORT`.
+   *
+   * @param httpServer The HTTP server to start.
+   */
+  private startHttpServer(httpServer: http.Server): void {
+    httpServer.listen(SERVER_PORT, () => {
+      console.log(`Server running on port ${SERVER_PORT}`);
+    });
+  }
 }
