@@ -17,6 +17,9 @@ import { envConfig } from "./envConfig";
 import { Server as SocketIOServer } from "socket.io";
 import { createClient } from "redis";
 import { createAdapter } from "@socket.io/redis-adapter";
+import applicationRoutes from "./routes";
+import { IErrorResponse } from "src/shared/globals/interface/error";
+import { CustomError } from "src/shared/globals/helpers/error-handler";
 
 export class AppServer {
   private app: Application;
@@ -84,9 +87,47 @@ export class AppServer {
     );
   }
 
-  private routeMiddleware(app: Application): void {}
+  /**
+   * Configure the route middleware for the app.
+   *
+   * This middleware configures the routes for the application, such as
+   * the user, post, and comment routes.
+   * @param app The Express application instance to configure.
+   */
+  private routeMiddleware(app: Application): void {
+    applicationRoutes(app);
+  }
 
-  private globalHandler(app: Application): void {}
+  /**
+   * Configures a global request handler for the app to catch all routes
+   * not matched by any other middleware or route handlers.
+   *
+   * This handler responds with an HTTP 404 Not Found status and a JSON
+   * message indicating that the requested URL was not found.
+   *
+   * @param app The Express application instance to configure.
+   */
+  private globalHandler(app: Application): void {
+    app.all("*", (req: Request, res: Response) => {
+      res
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ message: `${req.originalUrl} not found.` });
+    });
+
+    app.use(
+      (
+        error: IErrorResponse,
+        _req: Request,
+        res: Response,
+        next: NextFunction
+      ) => {
+        console.log(error);
+        if (error instanceof CustomError)
+          res.status(error.statusCode).json(error.serializeErrors());
+        else next();
+      }
+    );
+  }
 
   /**
    * Starts the server by creating an HTTP server instance and attaching
