@@ -14,6 +14,9 @@ import cookieSession from "cookie-session";
 import HTTP_STATUS from "http-status-codes";
 import compression from "compression";
 import { envConfig } from "./envConfig";
+import { Server as SocketIOServer } from "socket.io";
+import { createClient } from "redis";
+import { createAdapter } from "@socket.io/redis-adapter";
 
 export class AppServer {
   private app: Application;
@@ -86,25 +89,48 @@ export class AppServer {
   private globalHandler(app: Application): void {}
 
   /**
-   * Starts the server by creating an HTTP server instance
-   * and delegating the server start process to startHttpServer.
+   * Starts the server by creating an HTTP server instance and attaching
+   * a Socket.IO server to it. It also handles any errors that occur
+   * during the server startup process.
    *
-   * @param app The Express application instance to attach
-   * to the HTTP server.
-   * @returns A promise that resolves when the server is started.
-   * Logs any errors encountered during the start process.
+   * @param app The Express application instance to attach to the HTTP server.
+   * @returns A promise that resolves when the server is successfully started.
    */
-
   private async startServer(app: Application): Promise<void> {
     try {
       const httpServer: http.Server = new http.Server(app);
+      const socketIO: SocketIOServer = await this.createSocketIO(httpServer);
       this.startHttpServer(httpServer);
+      this.socketIOConnections(socketIO);
     } catch (error) {
       console.log(error);
     }
   }
 
-  private createSocketIO(httpServer: http.Server): void {}
+  /**
+   * Creates a Socket.IO server instance that is connected to the
+   * given HTTP server and configured for CORS and Redis
+   * pub/sub adapter.
+   *
+   * @param httpServer The HTTP server to attach to the Socket.IO server.
+   * @returns A promise that resolves with the created Socket.IO server instance.
+   */
+  private async createSocketIO(
+    httpServer: http.Server
+  ): Promise<SocketIOServer> {
+    const io: SocketIOServer = new SocketIOServer(httpServer, {
+      cors: {
+        origin: envConfig.CLIENT_URL,
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      },
+    });
+    const pubClient = createClient({ url: envConfig.REDIS_HOST });
+    const subClient = pubClient.duplicate();
+    await Promise.all([pubClient.connect(), subClient.connect()]);
+    io.adapter(createAdapter(pubClient, subClient));
+    return io;
+  }
 
   /**
    * Starts the HTTP server, listening on the port specified by
@@ -113,8 +139,11 @@ export class AppServer {
    * @param httpServer The HTTP server to start.
    */
   private startHttpServer(httpServer: http.Server): void {
+    console.log(`Server has started with process ${process.pid}`);
     httpServer.listen(envConfig.PORT, () => {
       console.log(`Server running on port ${envConfig.PORT}`);
     });
   }
+
+  private socketIOConnections(io: SocketIOServer): void {}
 }

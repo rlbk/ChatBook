@@ -10,6 +10,7 @@ class EnvConfig {
   public SECRET_KEY_TWO: string | undefined;
   public CLIENT_URL: string | undefined;
   public PORT: number | undefined;
+  public REDIS_HOST: string | undefined;
 
   constructor() {
     this.MONGO_URI = process.env.MONGO_URI;
@@ -19,6 +20,7 @@ class EnvConfig {
     this.SECRET_KEY_TWO = process.env.SECRET_KEY_TWO;
     this.CLIENT_URL = process.env.CLIENT_URL;
     this.PORT = Number(process.env.PORT) || 8000;
+    this.REDIS_HOST = process.env.REDIS_HOST;
   }
 
   public validateConfig(): void {
