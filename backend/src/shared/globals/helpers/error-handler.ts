@@ -1,6 +1,6 @@
-import HTTP_STATUS from "http-status-codes";
-import { IError } from "../interface/error";
-import { STATUS } from "../enums/status";
+import HTTP_STATUS from 'http-status-codes';
+import { IError } from '../interface/error';
+import { STATUS } from '../enums/status';
 
 export abstract class CustomError extends Error {
   abstract statusCode: number;
@@ -18,7 +18,7 @@ export abstract class CustomError extends Error {
     return {
       message: this.message,
       status: this.status,
-      statusCode: this.statusCode,
+      statusCode: this.statusCode
     };
   }
 }

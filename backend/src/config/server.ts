@@ -1,28 +1,21 @@
-import {
-  Application,
-  json,
-  urlencoded,
-  Response,
-  Request,
-  NextFunction,
-} from "express";
-import http from "http";
-import cors from "cors";
-import helmet from "helmet";
-import hpp from "hpp";
-import cookieSession from "cookie-session";
-import HTTP_STATUS from "http-status-codes";
-import compression from "compression";
-import { appConfig } from "./appConfig";
-import { Server as SocketIOServer } from "socket.io";
-import { createClient } from "redis";
-import { createAdapter } from "@socket.io/redis-adapter";
-import { IErrorResponse } from "src/shared/globals/interface/error";
-import Logger from "bunyan";
-import { CustomError } from "../shared/globals/helpers/error-handler";
-import applicationRoutes from "./routes";
+import { Application, json, urlencoded, Response, Request, NextFunction } from 'express';
+import http from 'http';
+import cors from 'cors';
+import helmet from 'helmet';
+import hpp from 'hpp';
+import cookieSession from 'cookie-session';
+import HTTP_STATUS from 'http-status-codes';
+import compression from 'compression';
+import { appConfig } from './appConfig';
+import { Server as SocketIOServer } from 'socket.io';
+import { createClient } from 'redis';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { IErrorResponse } from 'src/shared/globals/interface/error';
+import Logger from 'bunyan';
+import { CustomError } from '../shared/globals/helpers/error-handler';
+import applicationRoutes from './routes';
 
-const log: Logger = appConfig.createLogger("server");
+const log: Logger = appConfig.createLogger('server');
 
 export class AppServer {
   private app: Application;
@@ -36,22 +29,22 @@ export class AppServer {
    * standard, route, and global middleware, and then starting the server.
    */
   public start(): void {
-    console.log("Starting app...");
+    console.log('Starting app...');
 
     this.securityMiddleware(this.app);
-    console.log("Security middleware done");
+    console.log('Security middleware done');
 
     this.standardMiddleware(this.app);
-    console.log("Standard middleware done");
+    console.log('Standard middleware done');
 
     this.routeMiddleware(this.app);
-    console.log("Route middleware done");
+    console.log('Route middleware done');
 
     this.globalHandler(this.app);
-    console.log("Global handler done");
+    console.log('Global handler done');
 
     this.startServer(this.app);
-    console.log("Server start called");
+    console.log('Server start called');
   }
 
   /**
@@ -63,10 +56,10 @@ export class AppServer {
   private securityMiddleware(app: Application): void {
     app.use(
       cookieSession({
-        name: "session",
+        name: 'session',
         keys: [appConfig.SECRET_KEY_ONE!, appConfig.SECRET_KEY_TWO!],
         maxAge: 24 * 60 * 60 * 100, // 24 hours
-        secure: appConfig.NODE_ENV !== "development",
+        secure: appConfig.NODE_ENV !== 'development'
       })
     );
     app.use(hpp());
@@ -75,7 +68,7 @@ export class AppServer {
       cors({
         origin: appConfig.CLIENT_URL,
         credentials: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
       })
     );
   }
@@ -93,10 +86,10 @@ export class AppServer {
    */
   private standardMiddleware(app: Application): void {
     app.use(compression());
-    app.use(json({ limit: "50mb" }));
+    app.use(json({ limit: '50mb' }));
     app.use(
       urlencoded({
-        extended: true,
+        extended: true
       })
     );
   }
@@ -123,24 +116,14 @@ export class AppServer {
    */
   private globalHandler(app: Application): void {
     app.use((req: Request, res: Response) => {
-      res
-        .status(HTTP_STATUS.NOT_FOUND)
-        .json({ message: `${req.originalUrl} not found.` });
+      res.status(HTTP_STATUS.NOT_FOUND).json({ message: `${req.originalUrl} not found.` });
     });
 
-    app.use(
-      (
-        error: IErrorResponse,
-        _req: Request,
-        res: Response,
-        next: NextFunction
-      ) => {
-        log.error(error);
-        if (error instanceof CustomError)
-          res.status(error.statusCode).json(error.serializeErrors());
-        else next();
-      }
-    );
+    app.use((error: IErrorResponse, _req: Request, res: Response, next: NextFunction) => {
+      log.error(error);
+      if (error instanceof CustomError) res.status(error.statusCode).json(error.serializeErrors());
+      else next();
+    });
   }
 
   /**
@@ -170,15 +153,13 @@ export class AppServer {
    * @param httpServer The HTTP server to attach to the Socket.IO server.
    * @returns A promise that resolves with the created Socket.IO server instance.
    */
-  private async createSocketIO(
-    httpServer: http.Server
-  ): Promise<SocketIOServer> {
+  private async createSocketIO(httpServer: http.Server): Promise<SocketIOServer> {
     const io: SocketIOServer = new SocketIOServer(httpServer, {
       cors: {
         origin: appConfig.CLIENT_URL,
         credentials: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      },
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+      }
     });
     const pubClient = createClient({ url: appConfig.REDIS_HOST });
     const subClient = pubClient.duplicate();
