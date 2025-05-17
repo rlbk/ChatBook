@@ -10,9 +10,9 @@ import { appConfig } from './appConfig';
 import { Server as SocketIOServer } from 'socket.io';
 import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
-import { IErrorResponse } from 'src/shared/globals/interface/error';
+import { IErrorResponse } from '@globals/interface/error';
 import Logger from 'bunyan';
-import { CustomError } from '../shared/globals/helpers/error-handler';
+import { CustomError } from '@globals/helpers/error-handler';
 import applicationRoutes from './routes';
 
 const log: Logger = appConfig.createLogger('server');
@@ -29,22 +29,11 @@ export class AppServer {
    * standard, route, and global middleware, and then starting the server.
    */
   public start(): void {
-    console.log('Starting app...');
-
     this.securityMiddleware(this.app);
-    console.log('Security middleware done');
-
     this.standardMiddleware(this.app);
-    console.log('Standard middleware done');
-
     this.routeMiddleware(this.app);
-    console.log('Route middleware done');
-
     this.globalHandler(this.app);
-    console.log('Global handler done');
-
     this.startServer(this.app);
-    console.log('Server start called');
   }
 
   /**
@@ -180,5 +169,7 @@ export class AppServer {
     });
   }
 
-  private socketIOConnections(io: SocketIOServer): void {}
+  private socketIOConnections(io: SocketIOServer): void {
+    log.info('Socket connection');
+  }
 }

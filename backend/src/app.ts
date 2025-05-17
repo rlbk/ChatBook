@@ -1,7 +1,7 @@
 import express, { Express } from 'express';
-import { AppServer } from './config/server';
-import databaseConnection from './config/database';
-import { appConfig } from './config/appConfig';
+import { AppServer } from '@config/server';
+import databaseConnection from '@config/database';
+import { appConfig } from '@config/appConfig';
 
 class Application {
   /**

@@ -1,6 +1,6 @@
 import HTTP_STATUS from 'http-status-codes';
-import { IError } from '../interface/error';
-import { STATUS } from '../enums/status';
+import { IError } from '@globals/interface/error';
+import { STATUS } from '@globals/enums/status';
 
 export abstract class CustomError extends Error {
   abstract statusCode: number;
