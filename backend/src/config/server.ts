@@ -13,13 +13,16 @@ import hpp from "hpp";
 import cookieSession from "cookie-session";
 import HTTP_STATUS from "http-status-codes";
 import compression from "compression";
-import { envConfig } from "./envConfig";
+import { appConfig } from "./appConfig";
 import { Server as SocketIOServer } from "socket.io";
 import { createClient } from "redis";
 import { createAdapter } from "@socket.io/redis-adapter";
-import applicationRoutes from "./routes";
 import { IErrorResponse } from "src/shared/globals/interface/error";
-import { CustomError } from "src/shared/globals/helpers/error-handler";
+import Logger from "bunyan";
+import { CustomError } from "../shared/globals/helpers/error-handler";
+import applicationRoutes from "./routes";
+
+const log: Logger = appConfig.createLogger("server");
 
 export class AppServer {
   private app: Application;
@@ -33,11 +36,22 @@ export class AppServer {
    * standard, route, and global middleware, and then starting the server.
    */
   public start(): void {
+    console.log("Starting app...");
+
     this.securityMiddleware(this.app);
+    console.log("Security middleware done");
+
     this.standardMiddleware(this.app);
+    console.log("Standard middleware done");
+
     this.routeMiddleware(this.app);
+    console.log("Route middleware done");
+
     this.globalHandler(this.app);
+    console.log("Global handler done");
+
     this.startServer(this.app);
+    console.log("Server start called");
   }
 
   /**
@@ -50,16 +64,16 @@ export class AppServer {
     app.use(
       cookieSession({
         name: "session",
-        keys: [envConfig.SECRET_KEY_ONE!, envConfig.SECRET_KEY_TWO!],
+        keys: [appConfig.SECRET_KEY_ONE!, appConfig.SECRET_KEY_TWO!],
         maxAge: 24 * 60 * 60 * 100, // 24 hours
-        secure: envConfig.NODE_ENV !== "development",
+        secure: appConfig.NODE_ENV !== "development",
       })
     );
     app.use(hpp());
     app.use(helmet());
     app.use(
       cors({
-        origin: envConfig.CLIENT_URL,
+        origin: appConfig.CLIENT_URL,
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       })
@@ -108,7 +122,7 @@ export class AppServer {
    * @param app The Express application instance to configure.
    */
   private globalHandler(app: Application): void {
-    app.all("*", (req: Request, res: Response) => {
+    app.use((req: Request, res: Response) => {
       res
         .status(HTTP_STATUS.NOT_FOUND)
         .json({ message: `${req.originalUrl} not found.` });
@@ -121,7 +135,7 @@ export class AppServer {
         res: Response,
         next: NextFunction
       ) => {
-        console.log(error);
+        log.error(error);
         if (error instanceof CustomError)
           res.status(error.statusCode).json(error.serializeErrors());
         else next();
@@ -144,7 +158,7 @@ export class AppServer {
       this.startHttpServer(httpServer);
       this.socketIOConnections(socketIO);
     } catch (error) {
-      console.log(error);
+      log.error(error);
     }
   }
 
@@ -161,12 +175,12 @@ export class AppServer {
   ): Promise<SocketIOServer> {
     const io: SocketIOServer = new SocketIOServer(httpServer, {
       cors: {
-        origin: envConfig.CLIENT_URL,
+        origin: appConfig.CLIENT_URL,
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       },
     });
-    const pubClient = createClient({ url: envConfig.REDIS_HOST });
+    const pubClient = createClient({ url: appConfig.REDIS_HOST });
     const subClient = pubClient.duplicate();
     await Promise.all([pubClient.connect(), subClient.connect()]);
     io.adapter(createAdapter(pubClient, subClient));
@@ -180,9 +194,8 @@ export class AppServer {
    * @param httpServer The HTTP server to start.
    */
   private startHttpServer(httpServer: http.Server): void {
-    console.log(`Server has started with process ${process.pid}`);
-    httpServer.listen(envConfig.PORT, () => {
-      console.log(`Server running on port ${envConfig.PORT}`);
+    httpServer.listen(appConfig.PORT, () => {
+      log.info(`Server running on port ${appConfig.PORT}`);
     });
   }
 

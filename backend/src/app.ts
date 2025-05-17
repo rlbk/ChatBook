@@ -1,7 +1,7 @@
 import express, { Express } from "express";
 import { AppServer } from "./config/server";
 import databaseConnection from "./config/database";
-import { envConfig } from "./config/envConfig";
+import { appConfig } from "./config/appConfig";
 
 class Application {
   /**
@@ -9,15 +9,15 @@ class Application {
    * and an instance of AppServer, and then starting the server.
    */
   public initialize(): void {
-    this.loadEnvConfig();
+    this.loadappConfig();
     databaseConnection();
     const app: Express = express();
     const server: AppServer = new AppServer(app);
     server.start();
   }
 
-  private loadEnvConfig(): void {
-    envConfig.validateConfig();
+  private loadappConfig(): void {
+    appConfig.validateConfig();
   }
 }
 

@@ -1,17 +1,20 @@
 import mongoose from "mongoose";
-import { envConfig } from "./envConfig";
+import { appConfig } from "./appConfig";
+import Logger from "bunyan";
+
+const log: Logger = appConfig.createLogger("database");
 
 export default () => {
   const connect = () => {
     mongoose
-      .connect(`${envConfig.MONGO_URI}`)
+      .connect(`${appConfig.MONGO_URI}`)
       .then((connectionInstance) => {
-        console.log(
+        log.info(
           `DB connected. DB Host: ${connectionInstance.connection.host}`
         );
       })
       .catch((error) => {
-        console.log("DB connection FAILED ", error);
+        log.info("DB connection FAILED ", error);
         process.exit(1);
       });
   };

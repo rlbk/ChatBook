@@ -1,8 +1,9 @@
 import dotenv from "dotenv";
+import bunyan from "bunyan";
 
 dotenv.config();
 
-class EnvConfig {
+class AppConfig {
   public MONGO_URI: string | undefined;
   public JWT_TOKEN: string | undefined;
   public NODE_ENV: string | undefined;
@@ -23,6 +24,10 @@ class EnvConfig {
     this.REDIS_HOST = process.env.REDIS_HOST;
   }
 
+  public createLogger(name: string): bunyan {
+    return bunyan.createLogger({ name, level: "debug" });
+  }
+
   public validateConfig(): void {
     for (const [key, value] of Object.entries(this)) {
       if (value === undefined) {
@@ -32,4 +37,4 @@ class EnvConfig {
   }
 }
 
-export const envConfig: EnvConfig = new EnvConfig();
+export const appConfig: AppConfig = new AppConfig();
