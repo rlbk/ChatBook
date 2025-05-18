@@ -9,15 +9,16 @@ class Application {
    * and an instance of AppServer, and then starting the server.
    */
   public initialize(): void {
-    this.loadappConfig();
+    this.loadAppConfig();
     databaseConnection();
     const app: Express = express();
     const server: AppServer = new AppServer(app);
     server.start();
   }
 
-  private loadappConfig(): void {
+  private loadAppConfig(): void {
     appConfig.validateConfig();
+    appConfig.cloudinaryConfig();
   }
 }
 

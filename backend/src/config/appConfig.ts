@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import bunyan from 'bunyan';
+import cloudinary from 'cloudinary';
 
 dotenv.config();
 
@@ -12,6 +13,9 @@ class AppConfig {
   public CLIENT_URL: string | undefined;
   public PORT: number | undefined;
   public REDIS_HOST: string | undefined;
+  public CLOUDINARY_NAME: string | undefined;
+  public CLOUDINARY_API_KEY: string | undefined;
+  public CLOUDINARY_API_SECRET: string | undefined;
 
   constructor() {
     this.MONGO_URI = process.env.MONGO_URI;
@@ -22,6 +26,9 @@ class AppConfig {
     this.CLIENT_URL = process.env.CLIENT_URL;
     this.PORT = Number(process.env.PORT) || 8000;
     this.REDIS_HOST = process.env.REDIS_HOST;
+    this.CLOUDINARY_NAME = process.env.CLOUDINARY_NAME;
+    this.CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
+    this.CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
   }
 
   public createLogger(name: string): bunyan {
@@ -34,6 +41,14 @@ class AppConfig {
         throw new Error(`Configuration ${key} is undefined`);
       }
     }
+  }
+
+  public cloudinaryConfig(): void {
+    cloudinary.v2.config({
+      cloud_name: this.CLOUDINARY_NAME,
+      api_key: this.CLOUDINARY_API_KEY,
+      api_secret: this.CLOUDINARY_API_SECRET
+    });
   }
 }
 
