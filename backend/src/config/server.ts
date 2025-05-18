@@ -10,7 +10,7 @@ import { appConfig } from './appConfig';
 import { Server as SocketIOServer } from 'socket.io';
 import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
-import { IErrorResponse } from '@globals/interface/error';
+import { IErrorResponse } from '@globals/interface/error.interface';
 import Logger from 'bunyan';
 import { CustomError } from '@globals/helpers/error-handler';
 import applicationRoutes from './routes';
