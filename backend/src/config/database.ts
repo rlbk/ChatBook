@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { appConfig } from './appConfig';
 import Logger from 'bunyan';
+import { redisConnection } from '@services/redis/redis.connection';
 
 const log: Logger = appConfig.createLogger('database');
 
@@ -10,6 +11,7 @@ export default () => {
       .connect(`${appConfig.MONGO_URI}`)
       .then((connectionInstance) => {
         log.info(`DB connected. DB Host: ${connectionInstance.connection.host}`);
+        redisConnection.connect();
       })
       .catch((error) => {
         log.info('DB connection FAILED ', error);
